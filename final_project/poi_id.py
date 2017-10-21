@@ -149,8 +149,9 @@ def gen_features(dataset):
     """
     set_features = set()
     # Erase features of messages
-    list_filter = ['from_poi_to_this_person', 'to_messages', 'email_address', 
-    'shared_receipt_with_poi', 'from_messages', 'from_this_person_to_poi']
+    # list_filter = ['from_poi_to_this_person', 'to_messages', 'email_address', 
+    # 'shared_receipt_with_poi', 'from_messages', 'from_this_person_to_poi']
+    list_filter = []
     count = 0
     for _, features in dataset.items():
         if count:
@@ -234,22 +235,25 @@ def test():
     # new_feature(my_dataset)
 
     features_list = gen_features(my_dataset)
-    list_nan = check_nan(my_dataset)
+    list_nan = check_nan(my_dataset, n=5)
     features_list = [f for f in features_list if f not in list_nan]
+
+    print(features_list)
 
     ### Extract features and labels from dataset for local testing
     data = featureFormat(my_dataset, features_list, sort_keys=True)
     labels, features_rs = targetFeatureSplit(data)
     features_rs = MinMaxScaler().fit_transform(features_rs)
     labels_train, labels_test, features_train, features_test = train_test_split(labels, features_rs, test_size=0.3, random_state=42)
-    clf = RandomForestClassifier(max_depth=6, n_estimators=6, min_samples_split=2, min_samples_leaf=2, random_state=36)
+    clf = RandomForestClassifier(max_depth=5, n_estimators=3, min_samples_split=2, min_samples_leaf=2, random_state=36)
     clf.fit(features_train, labels_train)
     print(clf.feature_importances_)
     pred = clf.predict(features_test)
     print(clf.score(features_test, labels_test))
     print(metrics.precision_score(labels_test, pred))
     print(metrics.recall_score(labels_test, pred))
-    # score_by_shuffle(clf, features_rs, labels)
+    dump_classifier_and_data(clf, my_dataset, features_list)
+    tester.main()
 
 
 def main():
@@ -271,7 +275,7 @@ def main():
     # new_feature(my_dataset)
 
     features_list = gen_features(my_dataset)
-    list_nan = check_nan(my_dataset, n=3)
+    list_nan = check_nan(my_dataset, n=5)
     features_list = [f for f in features_list if f not in list_nan]
 
     ### Extract features and labels from dataset for local testing
